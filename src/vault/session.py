@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
+
 def load_session(path: str, timeout: int) -> Optional[bytes]:
     """
     Carga la clave derivada almacenada en session file si no ha expirado.
@@ -33,17 +34,16 @@ def load_session(path: str, timeout: int) -> Optional[bytes]:
         clear_session(path)
         return None
 
+
 def save_session(path: str, key: bytes) -> None:
     """
     Guarda la clave derivada en un session file con timestamp actual.
     """
     session_file = Path(path)
     session_file.parent.mkdir(parents=True, exist_ok=True)
-    data = {
-        "key": base64.b64encode(key).decode(),
-        "timestamp": int(time.time())
-    }
+    data = {"key": base64.b64encode(key).decode(), "timestamp": int(time.time())}
     session_file.write_text(json.dumps(data))
+
 
 def clear_session(path: str) -> None:
     """

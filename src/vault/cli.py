@@ -352,8 +352,15 @@ def import_vault(path, src_path):
 
 
 @cli.command()
-@click.option("--shares", type=int, required=True, help="Número total de shares a generar")
-@click.option("--threshold", type=int, required=True, help="Número mínimo de shares para recuperar")
+@click.option(
+    "--shares", type=int, required=True, help="Número total de shares a generar"
+)
+@click.option(
+    "--threshold",
+    type=int,
+    required=True,
+    help="Número mínimo de shares para recuperar",
+)
 def backup(shares, threshold):
     """
     Genera N shares de la contraseña maestra, recuperables con K de ellas (Shamir).
@@ -368,7 +375,13 @@ def backup(shares, threshold):
 
 
 @cli.command()
-@click.option("--share", "shares", multiple=True, required=True, help="Shares para recuperar la contraseña")
+@click.option(
+    "--share",
+    "shares",
+    multiple=True,
+    required=True,
+    help="Shares para recuperar la contraseña",
+)
 def recover(shares):
     """
     Recupera la contraseña maestra a partir de shares (Shamir).
