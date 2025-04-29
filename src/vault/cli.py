@@ -15,17 +15,20 @@ from cryptography.exceptions import InvalidTag
 
 _MAX_ATTEMPTS = 5
 
+
 def _fail_file(path: str) -> Path:
     """Return the path for the failure count file."""
-    return Path(path).with_suffix(Path(path).suffix + '.fail')
+    return Path(path).with_suffix(Path(path).suffix + ".fail")
+
 
 def record_fail(path: str) -> int:
     """Increment and return the number of failed attempts for this vault."""
     fpath = _fail_file(path)
-    count = int(fpath.read_text() or '0') if fpath.exists() else 0
+    count = int(fpath.read_text() or "0") if fpath.exists() else 0
     count += 1
     fpath.write_text(str(count))
     return count
+
 
 def clear_fail(path: str):
     """Clear the failure count for this vault."""
@@ -33,19 +36,21 @@ def clear_fail(path: str):
     if fpath.exists():
         fpath.unlink()
 
+
 @click.group()
 def cli():
     """Gestor de contraseñas local."""
     pass
 
+
 @cli.command()
-@click.option('--path', default='vault.dat', help='Ruta del fichero cifrado')
+@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado")
 @click.option(
-    '--password',
+    "--password",
     prompt="Contraseña maestra",
     hide_input=True,
     confirmation_prompt=True,
-    help="Contraseña maestra para inicializar el vault"
+    help="Contraseña maestra para inicializar el vault",
 )
 def init(path, password):
     """
@@ -69,23 +74,24 @@ def init(path, password):
 
     click.echo(f"Vault inicializado en {path}.")
 
+
 @cli.command()
-@click.option('--path', default='vault.dat', help='Ruta del fichero cifrado')
-@click.option('--name', required=True, help='Identificador único de la entrada')
-@click.option('--user', 'username', required=True, help='Nombre de usuario/login')
-@click.option('--note', default='', help='Nota opcional para la entrada')
+@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado")
+@click.option("--name", required=True, help="Identificador único de la entrada")
+@click.option("--user", "username", required=True, help="Nombre de usuario/login")
+@click.option("--note", default="", help="Nota opcional para la entrada")
 @click.option(
-    '--password',
+    "--password",
     prompt="Contraseña maestra",
     hide_input=True,
-    help="Contraseña maestra para desbloquear el vault"
+    help="Contraseña maestra para desbloquear el vault",
 )
 @click.option(
-    '--entry-pass',
+    "--entry-pass",
     prompt="Contraseña para la entrada",
     hide_input=True,
     confirmation_prompt=True,
-    help="La contraseña que se guardará en esta entrada"
+    help="La contraseña que se guardará en esta entrada",
 )
 def add(path, name, username, note, password, entry_pass):
     """
@@ -96,7 +102,9 @@ def add(path, name, username, note, password, entry_pass):
         entries = load_entries(path, password)
         clear_fail(path)
     except FileNotFoundError:
-        click.echo(f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero.")
+        click.echo(
+            f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero."
+        )
         return
     except InvalidTag:
         # Bad master password
@@ -105,7 +113,9 @@ def add(path, name, username, note, password, entry_pass):
             # Wipe vault and reset failure count
             Path(path).unlink(missing_ok=True)
             clear_fail(path)
-            click.echo("Demasiados intentos fallidos; el vault ha sido eliminado por seguridad.")
+            click.echo(
+                "Demasiados intentos fallidos; el vault ha sido eliminado por seguridad."
+            )
         else:
             left = _MAX_ATTEMPTS - count
             click.echo(f"Contraseña maestra incorrecta. Te quedan {left} intentos.")
@@ -113,11 +123,11 @@ def add(path, name, username, note, password, entry_pass):
 
     # 2) Construir la nueva entrada
     new_entry = {
-        "name":      name,
-        "username":  username,
-        "password":  entry_pass,
-        "note":      note,
-        "timestamp": int(time.time())
+        "name": name,
+        "username": username,
+        "password": entry_pass,
+        "note": note,
+        "timestamp": int(time.time()),
     }
 
     # 3) Añadir y guardar
@@ -126,14 +136,20 @@ def add(path, name, username, note, password, entry_pass):
 
     click.echo(f"Entrada '{name}' añadida correctamente.")
 
+
 @cli.command()
-@click.option('--path', default='vault.dat', help='Ruta del fichero cifrado')
-@click.option('--name', 'entry_name', required=True, help='Identificador único de la entrada a recuperar')
+@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado")
 @click.option(
-    '--password',
+    "--name",
+    "entry_name",
+    required=True,
+    help="Identificador único de la entrada a recuperar",
+)
+@click.option(
+    "--password",
     prompt="Contraseña maestra",
     hide_input=True,
-    help="Contraseña maestra para desbloquear el vault"
+    help="Contraseña maestra para desbloquear el vault",
 )
 def get(path, entry_name, password):
     """
@@ -144,7 +160,9 @@ def get(path, entry_name, password):
         entries = load_entries(path, password)
         clear_fail(path)
     except FileNotFoundError:
-        click.echo(f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero.")
+        click.echo(
+            f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero."
+        )
         return
     except InvalidTag:
         # Bad master password
@@ -153,33 +171,38 @@ def get(path, entry_name, password):
             # Wipe vault and reset failure count
             Path(path).unlink(missing_ok=True)
             clear_fail(path)
-            click.echo("Demasiados intentos fallidos; el vault ha sido eliminado por seguridad.")
+            click.echo(
+                "Demasiados intentos fallidos; el vault ha sido eliminado por seguridad."
+            )
         else:
             left = _MAX_ATTEMPTS - count
             click.echo(f"Contraseña maestra incorrecta. Te quedan {left} intentos.")
         return
 
     # Buscar entrada por nombre
-    entry = next((e for e in entries if e['name'] == entry_name), None)
+    entry = next((e for e in entries if e["name"] == entry_name), None)
     if not entry:
         click.echo(f"Entrada '{entry_name}' no encontrada.")
         return
 
     # Mostrar datos
-    created = datetime.datetime.fromtimestamp(entry['timestamp']).isoformat(sep=' ', timespec='seconds')
+    created = datetime.datetime.fromtimestamp(entry["timestamp"]).isoformat(
+        sep=" ", timespec="seconds"
+    )
     click.echo(f"Nombre:    {entry['name']}")
     click.echo(f"Usuario:   {entry['username']}")
     click.echo(f"Password:  {entry['password']}")
     click.echo(f"Nota:      {entry['note'] or '-'}")
     click.echo(f"Creado:    {created}")
 
-@cli.command(name='list')
-@click.option('--path', default='vault.dat', help='Ruta del fichero cifrado')
+
+@cli.command(name="list")
+@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado")
 @click.option(
-    '--password',
+    "--password",
     prompt="Contraseña maestra",
     hide_input=True,
-    help="Contraseña maestra para desbloquear el vault"
+    help="Contraseña maestra para desbloquear el vault",
 )
 def list_entries(path, password):
     """
@@ -189,7 +212,9 @@ def list_entries(path, password):
         entries = load_entries(path, password)
         clear_fail(path)
     except FileNotFoundError:
-        click.echo(f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero.")
+        click.echo(
+            f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero."
+        )
         return
     except InvalidTag:
         # Bad master password
@@ -198,7 +223,9 @@ def list_entries(path, password):
             # Wipe vault and reset failure count
             Path(path).unlink(missing_ok=True)
             clear_fail(path)
-            click.echo("Demasiados intentos fallidos; el vault ha sido eliminado por seguridad.")
+            click.echo(
+                "Demasiados intentos fallidos; el vault ha sido eliminado por seguridad."
+            )
         else:
             left = _MAX_ATTEMPTS - count
             click.echo(f"Contraseña maestra incorrecta. Te quedan {left} intentos.")
@@ -212,19 +239,26 @@ def list_entries(path, password):
     click.echo(f"{'Nombre':<20} {'Creado':<20}")
     click.echo("-" * 42)
     for e in entries:
-        created = datetime.datetime.fromtimestamp(e['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
+        created = datetime.datetime.fromtimestamp(e["timestamp"]).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         click.echo(f"{e['name']:<20} {created:<20}")
 
 
 # Nuevo comando: remove
 @cli.command()
-@click.option('--path', default='vault.dat', help='Ruta del fichero cifrado')
-@click.option('--name', 'entry_name', required=True, help='Identificador único de la entrada a eliminar')
+@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado")
 @click.option(
-    '--password',
+    "--name",
+    "entry_name",
+    required=True,
+    help="Identificador único de la entrada a eliminar",
+)
+@click.option(
+    "--password",
     prompt="Contraseña maestra",
     hide_input=True,
-    help="Contraseña maestra para desbloquear el vault"
+    help="Contraseña maestra para desbloquear el vault",
 )
 def remove(path, entry_name, password):
     """
@@ -235,7 +269,9 @@ def remove(path, entry_name, password):
         entries = load_entries(path, password)
         clear_fail(path)
     except FileNotFoundError:
-        click.echo(f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero.")
+        click.echo(
+            f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero."
+        )
         return
     except InvalidTag:
         # Bad master password
@@ -244,31 +280,36 @@ def remove(path, entry_name, password):
             # Wipe vault and reset failure count
             Path(path).unlink(missing_ok=True)
             clear_fail(path)
-            click.echo("Demasiados intentos fallidos; el vault ha sido eliminado por seguridad.")
+            click.echo(
+                "Demasiados intentos fallidos; el vault ha sido eliminado por seguridad."
+            )
         else:
             left = _MAX_ATTEMPTS - count
             click.echo(f"Contraseña maestra incorrecta. Te quedan {left} intentos.")
         return
 
     # Verificar existencia
-    if not any(e['name'] == entry_name for e in entries):
+    if not any(e["name"] == entry_name for e in entries):
         click.echo(f"Entrada '{entry_name}' no encontrada.")
         return
 
     # Filtrar y guardar
-    new_entries = [e for e in entries if e['name'] != entry_name]
+    new_entries = [e for e in entries if e["name"] != entry_name]
     save_entries(path, password, new_entries)
 
     click.echo(f"Entrada '{entry_name}' eliminada correctamente.")
 
+
 @cli.command()
-@click.option('--path', default='vault.dat', help='Ruta del fichero cifrado de origen')
-@click.option('--file', 'dest_path', required=True, help='Ruta de destino para exportar el vault')
+@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado de origen")
 @click.option(
-    '--password',
+    "--file", "dest_path", required=True, help="Ruta de destino para exportar el vault"
+)
+@click.option(
+    "--password",
     prompt="Contraseña maestra",
     hide_input=True,
-    help="Contraseña maestra para verificar y exportar el vault"
+    help="Contraseña maestra para verificar y exportar el vault",
 )
 def export(path, dest_path, password):
     """
@@ -278,7 +319,9 @@ def export(path, dest_path, password):
     try:
         _ = load_entries(path, password)
     except FileNotFoundError:
-        click.echo(f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero.")
+        click.echo(
+            f"No se encontró el vault en '{path}'. Por favor, ejecuta 'vault init' primero."
+        )
         return
     except InvalidTag:
         click.echo("Contraseña maestra incorrecta.")
@@ -288,9 +331,12 @@ def export(path, dest_path, password):
     shutil.copy2(path, dest_path)
     click.echo(f"Vault exportado a '{dest_path}' correctamente.")
 
-@cli.command(name='import')
-@click.option('--path', default='vault.dat', help='Ruta destino donde se importará el vault')
-@click.option('--file', 'src_path', required=True, help='Fichero cifrado a importar')
+
+@cli.command(name="import")
+@click.option(
+    "--path", default="vault.dat", help="Ruta destino donde se importará el vault"
+)
+@click.option("--file", "src_path", required=True, help="Fichero cifrado a importar")
 def import_vault(path, src_path):
     """
     Importa un vault cifrado desde otro fichero.
@@ -304,5 +350,6 @@ def import_vault(path, src_path):
     shutil.copy2(src_path, path)
     click.echo(f"Vault importado desde '{src_path}' a '{path}' correctamente.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     cli()
