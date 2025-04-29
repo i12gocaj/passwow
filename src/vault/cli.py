@@ -12,17 +12,15 @@ from vault.storage import load_entries, save_entries
 from pathlib import Path
 from cryptography.exceptions import InvalidTag
 
-import os
-from pathlib import Path
 from vault.session import load_session, save_session, clear_session
+
+from vault.recovery import split_secret, recover_secret
 
 # Session file and timeout (seconds)
 SESSION_PATH = os.path.expanduser("~/.passwow/session.json")
 LOCK_TIMEOUT = 300  # 5 minutes
 
 _MAX_ATTEMPTS = 5
-
-from vault.recovery import split_secret, recover_secret
 
 
 def _fail_file(path: str) -> Path:

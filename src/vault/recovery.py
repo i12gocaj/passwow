@@ -5,15 +5,14 @@ Módulo de recuperación de la clave maestra usando Shamir's Secret Sharing.
 
 # Workaround for Python 3 compatibility with secretsharing library
 import builtins
-
-builtins.long = int
-
-# Monkey-patch secretsharing.entropy to support bytes.encode('hex') in Python 3
 import binascii
 import secretsharing.entropy as _entropy
 
 from secretsharing import PlaintextToHexSecretSharer
 
+builtins.long = int
+
+# Monkey-patch secretsharing.entropy to support bytes.encode('hex') in Python 3
 
 class _BytesWithEncode(bytes):
     def encode(self, encoding):
