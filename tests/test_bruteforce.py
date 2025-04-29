@@ -1,6 +1,4 @@
-import os
 from click.testing import CliRunner
-import pytest
 
 from vault.cli import cli
 

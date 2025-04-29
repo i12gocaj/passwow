@@ -5,9 +5,8 @@ import time
 import datetime
 
 import shutil
-from cryptography.exceptions import InvalidTag
 
-from vault.crypto import derive_key, encrypt_data, decrypt_data, _SALT_SIZE
+from vault.crypto import derive_key, encrypt_data, _SALT_SIZE
 from vault.storage import load_entries, save_entries
 
 from pathlib import Path

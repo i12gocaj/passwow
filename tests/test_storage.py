@@ -1,8 +1,7 @@
 import os
 import json
-import pytest
 from vault.storage import load_entries, save_entries
-from vault.crypto import _SALT_SIZE, _IV_SIZE, derive_key, encrypt_data
+from vault.crypto import _SALT_SIZE, derive_key, encrypt_data
 
 
 def test_storage_roundtrip(tmp_path):

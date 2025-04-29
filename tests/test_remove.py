@@ -1,5 +1,4 @@
 from click.testing import CliRunner
-import pytest
 
 from vault.cli import cli
 from vault.storage import load_entries

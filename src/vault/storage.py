@@ -1,4 +1,3 @@
-import os
 import json
 from vault.crypto import derive_key, decrypt_data, encrypt_data, _SALT_SIZE, _IV_SIZE
 
