@@ -1,0 +1,26 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Entornos virtuales
+venv/
+.venv/
+
+# Caché de pytest
+.pytest_cache/
+
+# Cobertura
+.coverage
+htmlcov/
+
+# Bases de datos y ficheros de datos
+vault.dat
+copia.dat
+*.dat.fail
+
+# Carpetas de configuración de editores
+.vscode/
+.idea/
+*.swp
+*.swo

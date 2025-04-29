@@ -1,0 +1,96 @@
+## Objetivo
+Crear un gestor de contraseñas local, seguro y minimalista, basado en AES‑256 GCM y derivación de clave con PBKDF2/Scrypt, con una interfaz CLI y posible evolución a versión desktop.
+
+---
+
+# Fase 0: Preparación del entorno y herramientas
+1. **Repositorio y control de versiones**: Crear repositorio Git privado en GitHub/GitLab e incluir .gitignore y guía de contribución.
+2. **Estructura del proyecto**: Definir carpetas `src/`, `tests/`, `docs/` y `scripts/`.
+3. **Entorno de desarrollo**:
+   - Elegir lenguaje (p. ej., Rust, Go o Python).
+   - Configurar entorno virtual (p. ej., `venv`, `pipenv` o `cargo`).
+4. **Integración continua (CI/CD)**:
+   - Pipeline básico para testeo automático.
+   - Linter y formateo (Prettier/Black o `rustfmt`).
+
+# Fase 1: Especificación de requisitos
+1. **Requisitos funcionales**:
+   - Inicializar base de datos cifrada.
+   - Añadir, leer, listar y eliminar entradas.
+   - Exportar/Importar fichero cifrado.
+2. **Requisitos no funcionales**:
+   - Seguridad: AES‑256 GCM, PBKDF2/Scrypt con salt único.
+   - Rendimiento: cifrado/desencriptado en <100 ms para 1 MB.
+   - Portabilidad: soporte Windows/Mac/Linux.
+3. **Definir casos de uso** y flujos CLI.
+4. **Criterios de éxito** y métricas (test coverage >80 %, time to unlock <200 ms).
+
+# Fase 2: Diseño de la arquitectura
+1. **Modelo de datos**:
+   - Esquema JSON interno: {id, nombre, usuario, contraseña, nota, salt, iv, timestamp}.
+2. **Capa criptográfica**:
+   - Módulo `crypto`: envoltorio para PBKDF2/Scrypt y AES‑GCM.
+   - Gestión de salt e IV aleatorios por registro.
+3. **Capa de persistencia**:
+   - Fichero plano cifrado completo o registros individuales cifrados.
+4. **CLI**:
+   - Comandos: `init`, `add`, `get`, `list`, `remove`, `export`, `import`.
+5. **Gestión de configuración** (p. ej., `$HOME/.myvault/config`).
+6. **Diagrama de componentes** (Opcional en docs).
+
+# Fase 3: Implementación del prototipo MVP
+1. **Módulo `init`**:
+   - Derivar clave maestra con PBKDF2/Scrypt.
+   - Crear fichero vacío cifrado.
+2. **Módulo `add`**:
+   - Input de datos, generar salt + IV, cifrar registro.
+3. **Módulo `get`**:
+   - Autenticación (solicitar contraseña maestra), descifrar y mostrar.
+4. **Módulo `list` / `remove`**:
+   - Listar IDs y metadatos, eliminar entrada solicitada.
+5. **Export/Import**:
+   - Exportar fichero completo cifrado.
+6. **Pruebas unitarias** para cada comando.
+
+# Fase 4: Integración de seguridad avanzada
+1. **Protección anti-brute-force**:
+   - Conteo de intentos, retrasos exponenciales.
+2. **Auto-bloqueo y wipe**:
+   - Después de X fallos, bloquear o destruir clave maestra en memoria segura.
+3. **Actualizaciones seguras**:
+   - Firmar releases, verificar firma en cliente.
+4. **Auditoría de criptografía**:
+   - Revisar dependencias y librerías.
+
+# Fase 5: Testing y aseguramiento de calidad
+1. **Tests automatizados**:
+   - Unit tests, tests de integración y contratos.
+2. **Pruebas de rendimiento**:
+   - Medir latencia de cifrado/desencriptado.
+3. **Fuzzing**:
+   - Inputs aleatorios para detectar fallos.
+4. **Análisis estático**:
+   - Herramientas como Bandit (Python) o Clippy (Rust).
+
+# Fase 6: Mejora de UX/UI minimalista
+1. **Refinamiento CLI**:
+   - Ayudas (`--help`), autocompletado (bash, zsh).
+2. **Interfaz Desktop (opcional)**:
+   - Prototipo con Electron o Tauri.
+3. **Documentación de usuario**:
+   - Guía rápida, tutorial en README.
+
+# Fase 7: Despliegue y distribución
+1. **Paquetes y releases**:
+   - Publicar binarios o paquetes (PyPI/Crates.io).
+2. **Canal de actualizaciones**:
+   - GitHub Releases + gestor de actualizaciones.
+3. **Licencia**:
+   - Elegir (MIT, Apache 2.0, GPL).
+
+# Fase 8: Roadmap de evolución
+1. **Sincronización manual** (import/export avanzado).
+2. **Módulo GUI completo**.
+3. **Extensión de navegador**.
+4. **Integración con hardware tokens** (FIDO2).
+5. **Funcionalidades AI on-device (futuro)**.

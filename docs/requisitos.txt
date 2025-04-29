@@ -1,0 +1,46 @@
+1. Requisitos funcionales
+	1.	Inicializar vault
+	•	Comando vault init que derive la clave maestra y genere el fichero cifrado vacío.
+	2.	Añadir entrada
+	•	vault add --name NOMBRE --user USUARIO → pide la contraseña, opcional nota.
+	3.	Leer entrada
+	•	vault get NOMBRE → desbloquea con maestra y muestra usuario/contraseña/nota.
+	4.	Listar entradas
+	•	vault list → muestra lista de nombres y fecha de creación.
+	5.	Eliminar entrada
+	•	vault remove NOMBRE → confirma antes de borrar.
+	6.	Exportar / Importar
+	•	vault export --file ruta
+	•	vault import --file ruta
+
+⸻
+
+2. Requisitos no funcionales
+	•	Seguridad
+	•	AES-256 GCM + PBKDF2 con salt único por usuario (mínimo 100 000 iteraciones).
+	•	Clave maestra nunca almacenada en disco ni swap.
+	•	Rendimiento
+	•	Unlock (derivación + descifrado) < 200 ms en un fichero de 1 MB.
+	•	Operaciones CRUD < 100 ms por entrada.
+	•	Portabilidad
+	•	Python 3.10+ en Windows, macOS y Linux.
+	•	Calidad de código
+	•	Cobertura de tests ≥ 80 %.
+	•	Linter (Black/Flake8) sin errores.
+
+⸻
+
+3. Casos de uso / Historias de usuario
+	1.	Como usuario novato, quiero inicializar mi vault con una maestra fuerte, para proteger mis contraseñas.
+	2.	Como usuario, quiero añadir rápidamente un nuevo acceso (nombre, usuario, contraseña), para no interrumpir mi flujo.
+	3.	Como usuario, quiero listar mis accesos y ver su antigüedad, para revisar si debo rotar contraseñas.
+	4.	Como usuario avanzado, quiero exportar e importar mi vault, para hacer backup/manual sync.
+
+⸻
+
+4. Criterios de éxito y métricas
+	•	Time to unlock: medida media < 200 ms (en pruebas automatizadas).
+	•	Throughput CRUD: ≥ 50 operaciones/segundo (benchmark local).
+	•	Test coverage: ≥ 80 %
+	•	Errores de linter: 0 en pipeline CI.
+	•	Adopción inicial: poder ejecutar todos los comandos básicos sin fallos en un entorno limpio.

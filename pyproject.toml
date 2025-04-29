@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "vault"
+version = "0.1.0"
+description = "Gestor de contraseñas local y seguro"
+authors = ["Tu Nombre <tu@correo.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+cryptography = "^40.0"
+click = "^8.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0"
+pytest-cov = "^4.0"
+bandit = "^1.7"
+black = "^23.0"
+flake8 = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^6.1.1"
+bandit = "^1.8.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
