@@ -12,7 +12,17 @@ from vault.storage import load_entries, save_entries
 from pathlib import Path
 from cryptography.exceptions import InvalidTag
 
+import os
+from pathlib import Path
+from vault.session import load_session, save_session, clear_session
+
+# Session file and timeout (seconds)
+SESSION_PATH = os.path.expanduser("~/.passwow/session.json")
+LOCK_TIMEOUT = 300  # 5 minutes
+
 _MAX_ATTEMPTS = 5
+
+from vault.recovery import split_secret, recover_secret
 
 
 def _fail_file(path: str) -> Path:
@@ -34,6 +44,21 @@ def clear_fail(path: str):
     fpath = _fail_file(path)
     if fpath.exists():
         fpath.unlink()
+
+
+def get_master_password():
+    """
+    Devuelve la contraseña maestra de la sesión si aún es válida,
+    o solicita una nueva y la guarda.
+    """
+    pw_bytes = load_session(SESSION_PATH, LOCK_TIMEOUT)
+    if pw_bytes:
+        return pw_bytes.decode()
+    # Solicitar nueva contraseña maestra
+    pw = click.prompt("Contraseña maestra", hide_input=True, confirmation_prompt=False)
+    # Guardar en sesión
+    save_session(SESSION_PATH, pw.encode())
+    return pw
 
 
 @click.group()
@@ -70,6 +95,7 @@ def init(path, password):
         vault_file.write(salt + iv + ciphertext)
 
     clear_fail(path)
+    clear_session(SESSION_PATH)
 
     click.echo(f"Vault inicializado en {path}.")
 
@@ -79,23 +105,11 @@ def init(path, password):
 @click.option("--name", required=True, help="Identificador único de la entrada")
 @click.option("--user", "username", required=True, help="Nombre de usuario/login")
 @click.option("--note", default="", help="Nota opcional para la entrada")
-@click.option(
-    "--password",
-    prompt="Contraseña maestra",
-    hide_input=True,
-    help="Contraseña maestra para desbloquear el vault",
-)
-@click.option(
-    "--entry-pass",
-    prompt="Contraseña para la entrada",
-    hide_input=True,
-    confirmation_prompt=True,
-    help="La contraseña que se guardará en esta entrada",
-)
-def add(path, name, username, note, password, entry_pass):
+def add(path, name, username, note):
     """
     Añade una nueva entrada al vault.
     """
+    password = get_master_password()
     # 1) Cargar las entradas existentes
     try:
         entries = load_entries(path, password)
@@ -119,6 +133,13 @@ def add(path, name, username, note, password, entry_pass):
             left = _MAX_ATTEMPTS - count
             click.echo(f"Contraseña maestra incorrecta. Te quedan {left} intentos.")
         return
+
+    entry_pass = click.prompt(
+        "Contraseña para la entrada",
+        hide_input=True,
+        confirmation_prompt=True,
+        help="La contraseña que se guardará en esta entrada",
+    )
 
     # 2) Construir la nueva entrada
     new_entry = {
@@ -144,16 +165,11 @@ def add(path, name, username, note, password, entry_pass):
     required=True,
     help="Identificador único de la entrada a recuperar",
 )
-@click.option(
-    "--password",
-    prompt="Contraseña maestra",
-    hide_input=True,
-    help="Contraseña maestra para desbloquear el vault",
-)
-def get(path, entry_name, password):
+def get(path, entry_name):
     """
     Recupera y muestra los detalles de una entrada.
     """
+    password = get_master_password()
     # Cargar entradas
     try:
         entries = load_entries(path, password)
@@ -197,16 +213,11 @@ def get(path, entry_name, password):
 
 @cli.command(name="list")
 @click.option("--path", default="vault.dat", help="Ruta del fichero cifrado")
-@click.option(
-    "--password",
-    prompt="Contraseña maestra",
-    hide_input=True,
-    help="Contraseña maestra para desbloquear el vault",
-)
-def list_entries(path, password):
+def list_entries(path):
     """
     Lista todas las entradas del vault con nombre y fecha de creación.
     """
+    password = get_master_password()
     try:
         entries = load_entries(path, password)
         clear_fail(path)
@@ -253,16 +264,11 @@ def list_entries(path, password):
     required=True,
     help="Identificador único de la entrada a eliminar",
 )
-@click.option(
-    "--password",
-    prompt="Contraseña maestra",
-    hide_input=True,
-    help="Contraseña maestra para desbloquear el vault",
-)
-def remove(path, entry_name, password):
+def remove(path, entry_name):
     """
     Elimina una entrada del vault.
     """
+    password = get_master_password()
     # Cargar entradas existentes
     try:
         entries = load_entries(path, password)
@@ -304,16 +310,11 @@ def remove(path, entry_name, password):
 @click.option(
     "--file", "dest_path", required=True, help="Ruta de destino para exportar el vault"
 )
-@click.option(
-    "--password",
-    prompt="Contraseña maestra",
-    hide_input=True,
-    help="Contraseña maestra para verificar y exportar el vault",
-)
-def export(path, dest_path, password):
+def export(path, dest_path):
     """
     Exporta el vault cifrado a otro fichero, validando la contraseña maestra.
     """
+    password = get_master_password()
     # Verificar vault existente y contraseña correcta
     try:
         _ = load_entries(path, password)
@@ -348,6 +349,40 @@ def import_vault(path, src_path):
     # Copiar fichero de origen
     shutil.copy2(src_path, path)
     click.echo(f"Vault importado desde '{src_path}' a '{path}' correctamente.")
+
+
+@cli.command()
+@click.option("--shares", type=int, required=True, help="Número total de shares a generar")
+@click.option("--threshold", type=int, required=True, help="Número mínimo de shares para recuperar")
+def backup(shares, threshold):
+    """
+    Genera N shares de la contraseña maestra, recuperables con K de ellas (Shamir).
+    """
+    # Obtener contraseña maestra validada
+    master_pw = get_master_password()
+    # Dividir en shares
+    parts = split_secret(master_pw, shares, threshold)
+    click.echo("Shares generadas (guárdalas de forma segura):")
+    for part in parts:
+        click.echo(part)
+
+
+@cli.command()
+@click.option("--share", "shares", multiple=True, required=True, help="Shares para recuperar la contraseña")
+def recover(shares):
+    """
+    Recupera la contraseña maestra a partir de shares (Shamir).
+    """
+    try:
+        master_pw = recover_secret(list(shares))
+    except Exception as e:
+        click.echo(f"Error al recuperar el secreto: {e}")
+        return
+    # Guardar nueva sesión y borrar contador de fallos
+    save_session(SESSION_PATH, master_pw.encode())
+    clear_fail("vault.dat")
+    click.echo("Contraseña maestra recuperada exitosamente:")
+    click.echo(master_pw)
 
 
 if __name__ == "__main__":

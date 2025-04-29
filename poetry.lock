@@ -656,6 +656,17 @@ typing-extensions = {version = ">=4.0.0,<5.0", markers = "python_version < \"3.1
 jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
+name = "secretsharing"
+version = "0.2.6"
+description = "Tools for sharing secrets (like Bitcoin private keys), using shamir's secret sharing scheme."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "secretsharing-0.2.6.tar.gz", hash = "sha256:2cae2aeb0bcd669d6f6672e9bd3774bbf21a76548de410c1831961b0b16518d2"},
+]
+
+[[package]]
 name = "setuptools"
 version = "80.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -750,4 +761,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "fad5d8ac63bc2a83c0b68b5f034b4e13e34db6e999accfa5b44cac7ceb47c624"
+content-hash = "91bf5f73f38d548aab30602de8eca3352af8186271b7d605bdc492e8c5e0f921"

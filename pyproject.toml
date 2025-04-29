@@ -8,6 +8,7 @@ authors = ["Javier González Casares <i12gocaj@uco.es>"]
 python = ">=3.10,<4.0"
 cryptography = "^40.0"
 click = "^8.0"
+secretsharing = "^0.2.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.1"

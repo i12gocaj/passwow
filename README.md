@@ -19,6 +19,8 @@ Interfaz de línea de comandos (CLI) con comandos para inicializar, añadir, lis
   - `remove` — Eliminar entrada.  
   - `export` — Exportar vault cifrado.  
   - `import` — Importar vault cifrado.  
+- **Recuperación de clave maestra** mediante Shamir’s Secret Sharing con comandos `backup` y `recover`.
+- **Auto-lock**: la sesión de la contraseña maestra se mantiene activa durante un tiempo configurable (por defecto 5 min), tras el cual se vuelve a solicitar.
 - Protección anti-brute-force: 5 intentos de contraseña maestra, luego auto-wipe del vault.
 - Tests completos con >80% de cobertura de código.
 - Análisis estático de seguridad con Bandit sin vulnerabilidades detectadas.
@@ -60,6 +62,25 @@ poetry run python -m vault.cli export --path vault.dat --file backup.dat
 # Importar vault cifrado
 poetry run python -m vault.cli import --path vault.dat --file backup.dat
 ```
+
+### Backup y recuperación (Shamir’s Secret Sharing)
+
+Para generar *n* shares y un umbral *k*:
+```bash
+poetry run python -m vault.cli backup --shares 5 --threshold 3
+```
+Esto imprimirá 5 líneas con `id-hexdata`. Para recuperar la contraseña con cualquier combinación de 3 shares:
+```bash
+poetry run python -m vault.cli recover \
+  --share "1-<hexdata>" \
+  --share "4-<hexdata>" \
+  --share "5-<hexdata>"
+```
+
+### Auto-lock por inactividad
+
+Una vez desbloqueado (por ejemplo tras `add`, `get`, etc.), la sesión de la contraseña maestra se guarda en `~/.passwow/session.json`.  
+Si transcurren más de 5 min sin usar comandos, la sesión caduca y el siguiente comando volverá a pedir la contraseña maestra.
 
 ## Desarrollo
 
