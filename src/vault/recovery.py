@@ -14,6 +14,7 @@ builtins.long = int
 
 # Monkey-patch secretsharing.entropy to support bytes.encode('hex') in Python 3
 
+
 class _BytesWithEncode(bytes):
     def encode(self, encoding):
         if encoding == "hex":
