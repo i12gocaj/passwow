@@ -3,7 +3,6 @@ session.py
 Módulo para gestionar sesiones de clave maestra con auto-lock tras timeout.
 """
 
-import os
 import json
 import base64
 import time
