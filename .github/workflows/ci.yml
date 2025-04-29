@@ -49,21 +49,16 @@ jobs:
 
   benchmark:
     runs-on: ubuntu-latest
-    needs: test
-
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
-
-      - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python3 -
-
+          python-version: 3.9
       - name: Install dependencies
         run: poetry install
-
+      - name: Initialize vault for benchmark
+        run: |
+          printf "ciPass\nciPass\n" | poetry run python -m vault.cli init --path vault.dat
       - name: Run benchmark
-        run: poetry run python scripts/benchmark.py --path vault.dat --pw ciPass --size 1000000 --iter 5
+        run: poetry run python -m benchmark.cli run
