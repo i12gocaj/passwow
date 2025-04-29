@@ -46,3 +46,24 @@ jobs:
 
       - name: Security scan with Bandit
         run: poetry run bandit -r src/vault
+
+  benchmark:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run benchmark
+        run: poetry run python scripts/benchmark.py --path vault.dat --pw ciPass --size 1000000 --iter 5

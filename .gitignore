@@ -9,6 +9,8 @@ venv/
 
 # Caché de pytest
 .pytest_cache/
+.hypothesis/
+completions/
 
 # Cobertura
 .coverage

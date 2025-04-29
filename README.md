@@ -24,6 +24,9 @@ Interfaz de línea de comandos (CLI) con comandos para inicializar, añadir, lis
 - Protección anti-brute-force: 5 intentos de contraseña maestra, luego auto-wipe del vault.
 - Tests completos con >80% de cobertura de código.
 - Análisis estático de seguridad con Bandit sin vulnerabilidades detectadas.
+- **Benchmark de rendimiento**: script `scripts/benchmark.py` para medir tiempos de desbloqueo.
+- **Fuzz testing**: pruebas con Hypothesis para validar almacenamiento y recuperación con datos aleatorios.
+- **Autocompletado**: comando `completion` para generar scripts de autocompletion en Bash, Zsh y Fish.
 
 ## Instalación
 
