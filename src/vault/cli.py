@@ -136,7 +136,6 @@ def add(path, name, username, note):
         "Contraseña para la entrada",
         hide_input=True,
         confirmation_prompt=True,
-        help="La contraseña que se guardará en esta entrada",
     )
 
     # 2) Construir la nueva entrada
