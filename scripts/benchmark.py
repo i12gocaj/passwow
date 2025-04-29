@@ -11,6 +11,7 @@ import argparse
 from vault.crypto import derive_key, encrypt_data, _SALT_SIZE
 from vault.storage import save_entries, load_entries
 
+
 def generate_dummy_vault(path: str, master_pw: str, size_bytes: int = 1_000_000):
     """
     Genera un vault cifrado de aproximadamente size_bytes tamaño.
@@ -23,7 +24,7 @@ def generate_dummy_vault(path: str, master_pw: str, size_bytes: int = 1_000_000)
         "username": "user",
         "password": "p" * 50,
         "note": "",
-        "timestamp": int(time.time())
+        "timestamp": int(time.time()),
     }
     while True:
         entries.append(dummy_entry)
@@ -33,6 +34,7 @@ def generate_dummy_vault(path: str, master_pw: str, size_bytes: int = 1_000_000)
         if total >= size_bytes:
             save_entries(path, master_pw, entries)
             break
+
 
 def benchmark_unlock(path: str, master_pw: str, iterations: int = 10):
     """
@@ -46,11 +48,18 @@ def benchmark_unlock(path: str, master_pw: str, iterations: int = 10):
     avg = sum(times) / len(times)
     print(f"Unlock average over {iterations} runs: {avg:.4f}s")
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Benchmark de vault: genera y mide unlock.")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Benchmark de vault: genera y mide unlock."
+    )
     parser.add_argument("--path", default="vault.dat", help="Ruta del vault cifrado")
-    parser.add_argument("--pw", default="benchmark", help="Contraseña maestra para el vault")
-    parser.add_argument("--size", type=int, default=1000000, help="Tamaño objetivo en bytes")
+    parser.add_argument(
+        "--pw", default="benchmark", help="Contraseña maestra para el vault"
+    )
+    parser.add_argument(
+        "--size", type=int, default=1000000, help="Tamaño objetivo en bytes"
+    )
     parser.add_argument("--iter", type=int, default=10, help="Número de iteraciones")
     args = parser.parse_args()
     generate_dummy_vault(args.path, args.pw, args.size)
