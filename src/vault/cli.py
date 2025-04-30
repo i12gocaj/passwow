@@ -1,5 +1,6 @@
 import click
 import click_completion
+
 click_completion.init()
 import os
 import json
@@ -41,7 +42,6 @@ def clear_fail(path: str):
         fpath.unlink()
 
 
-
 @click.group()
 def cli():
     """Gestor de contraseñas local."""
@@ -50,7 +50,11 @@ def cli():
 
 # Comando explícito para autocompletado
 @cli.command()
-@click.argument('shell', required=True, type=click.Choice(['bash', 'zsh', 'fish', 'powershell', 'auto']))
+@click.argument(
+    "shell",
+    required=True,
+    type=click.Choice(["bash", "zsh", "fish", "powershell", "auto"]),
+)
 def completion(shell):
     """
     Genera el script de autocompletado para el shell dado.
