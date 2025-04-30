@@ -85,6 +85,70 @@ poetry run python -m vault.cli recover \
 Una vez desbloqueado (por ejemplo tras `add`, `get`, etc.), la sesión de la contraseña maestra se guarda en `~/.passwow/session.json`.  
 Si transcurren más de 5 min sin usar comandos, la sesión caduca y el siguiente comando volverá a pedir la contraseña maestra.
 
+### Autocompletado de comandos
+
+Puedes habilitar autocompletado para tu CLI en tu shell favorito siguiendo estos pasos:
+
+1. **Instalar la dependencia** (solo si no lo has hecho):
+   ```bash
+   poetry add click-completion --dev
+   ```
+
+2. **Generar el script** de autocompletado para tu shell:
+   
+   - **Bash**:
+     ```bash
+     mkdir -p completions
+     poetry run vault completion bash > completions/vault.bash
+     ```
+   - **Zsh**:
+     ```bash
+     mkdir -p completions
+     poetry run vault completion zsh > completions/_vault
+     ```
+   - **Fish**:
+     ```bash
+     mkdir -p completions
+     poetry run vault completion fish > completions/vault.fish
+     ```
+
+3. **Instalar el script** en tu configuración de shell:
+
+   - **Bash**:  
+     Añade en tu `~/.bashrc`:
+     ```bash
+     source /ruta/a/tu/proyecto/completions/vault.bash
+     ```
+     Luego recarga:
+     ```bash
+     source ~/.bashrc
+     ```
+
+   - **Zsh**:  
+     Añade en tu `~/.zshrc`:
+     ```zsh
+     fpath=(/ruta/a/tu/proyecto/completions $fpath)
+     autoload -Uz compinit && compinit
+     ```
+     Luego recarga:
+     ```bash
+     source ~/.zshrc
+     ```
+
+   - **Fish**:  
+     Copia el script a tu carpeta de completions:
+     ```bash
+     cp completions/vault.fish ~/.config/fish/completions/
+     ```
+     Luego abre una nueva sesión de Fish.
+
+4. **Probar el autocompletado**:
+   Abre una nueva terminal y escribe:
+   ```bash
+   vault <TAB><TAB>
+   ```
+   Deberías ver sugerencias de todos los comandos y opciones disponibles.
+
 ## Desarrollo
 
 Activa el entorno virtual de Poetry y ejecuta tests:
