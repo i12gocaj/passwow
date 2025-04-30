@@ -1,7 +1,6 @@
 import click
 import click_completion
 
-click_completion.init()
 import os
 import json
 import time
@@ -17,6 +16,7 @@ from cryptography.exceptions import InvalidTag
 
 from vault.recovery import split_secret, recover_secret
 
+click_completion.init()
 
 _MAX_ATTEMPTS = 5
 

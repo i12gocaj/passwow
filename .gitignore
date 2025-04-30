@@ -21,6 +21,7 @@ vault.dat
 copia.dat
 *.dat.fail
 shares.txt
+docs/
 
 # Carpetas de configuración de editores
 .vscode/
