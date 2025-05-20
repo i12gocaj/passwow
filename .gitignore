@@ -24,7 +24,6 @@ shares.txt
 # PyInstaller
 build/
 dist/
-*.spec
 
 # Carpetas de configuración de editores
 .vscode/
