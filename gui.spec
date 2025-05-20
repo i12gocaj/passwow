@@ -7,7 +7,11 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=collect_submodules('cryptography') + collect_submodules('cryptography.hazmat.bindings._rust') + collect_submodules('cryptography.hazmat.bindings._openssl') + collect_submodules('secretsharing') + [
+    hiddenimports=collect_submodules('cryptography') + collect_submodules('cryptography.hazmat.primitives.ciphers.aead') + collect_submodules('cryptography.hazmat.bindings._rust') + collect_submodules('cryptography.hazmat.bindings._openssl') + collect_submodules('secretsharing') + [
+        'cryptography',
+        'cryptography.hazmat.primitives.ciphers.aead',
+        'cryptography.hazmat.backends',
+        'cryptography.hazmat.primitives',
         'requests',
         'tkinter',
     ],

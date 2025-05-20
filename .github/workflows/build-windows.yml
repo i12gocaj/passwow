@@ -34,7 +34,7 @@ jobs:
           rm -rf build dist
       - name: Build executable with PyInstaller
         run: |
-          poetry run pyinstaller gui.spec
+          poetry run pyinstaller --collect-all cryptography gui.spec
         working-directory: ${{ github.workspace }}
 
       - name: Upload build artifact
