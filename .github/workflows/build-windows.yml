@@ -30,7 +30,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller gui.spec
+          poetry run pyinstaller gui.spec
         working-directory: ${{ github.workspace }}
 
       - name: Upload build artifact
