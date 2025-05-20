@@ -28,6 +28,10 @@ jobs:
         run: |
           pip install pyinstaller
 
+      - name: Clean previous builds
+        run: |
+          rmdir /s /q build || exit 0
+          rmdir /s /q dist || exit 0
       - name: Build executable with PyInstaller
         run: |
           poetry run pyinstaller gui.spec
