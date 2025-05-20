@@ -23,7 +23,12 @@ shares.txt
 
 # PyInstaller
 build/
-dist/
+# dist/ solo se ignora para Windows, no para macOS
+# dist/ se ignora excepto dist/gui.exe y dist/gui.app
+# Excluye todo menos los ejecutables principales
+/dist/
+!/dist/gui.exe
+!/dist/gui.app
 
 # Carpetas de configuración de editores
 .vscode/

@@ -81,9 +81,32 @@ Si modificas el código y quieres volver a generar la app:
 - El icono personalizado está en `icon.icns` y se incluye automáticamente.
 - El vault y su checksum se guardan junto al ejecutable.
 
-### Distribución
+## Aplicación gráfica para Windows
 
-Puedes distribuir la carpeta `dist/gui.app` como una app estándar de macOS. Si quieres firmar o notarizar la app para Gatekeeper, consulta la documentación oficial de Apple.
+Además de la versión para macOS, puedes usar la app gráfica en Windows:
+
+### Ejecutar la app en Windows
+
+1. Descarga el archivo `gui.exe` desde la sección de artefactos de GitHub Actions o desde el repositorio (en `dist/gui.exe`).
+2. Haz doble clic en `gui.exe` para abrir la aplicación.
+3. El vault y su checksum se guardan junto al ejecutable, igual que en macOS.
+
+### Empaquetar la app tú mismo en Windows
+
+Si quieres generar el ejecutable para Windows manualmente:
+
+1. Instala PyInstaller y Pillow:
+   ```bash
+   poetry run pip install pyinstaller pillow
+   ```
+2. Ejecuta el empaquetado:
+   ```bash
+   poetry run pyinstaller gui.spec
+   ```
+   Esto generará `dist/gui.exe`.
+
+- El icono personalizado está en `icon.ico` y se incluye automáticamente.
+- El vault y su checksum se guardan junto al ejecutable.
 
 ---
 
@@ -291,6 +314,9 @@ Este repositorio está listo para publicación pública en GitHub. Puedes contri
 - **App gráfica (macOS):**
   - Ejecuta `open dist/gui.app` o haz doble clic en el Finder.
   - Permite gestionar el vault de forma visual, con las mismas garantías de seguridad.
+- **App gráfica (Windows):**
+  - Ejecuta `dist/gui.exe` haciendo doble clic.
+  - El vault se gestiona junto al ejecutable, con seguridad y comodidad.
 
 ### Soporte
 
