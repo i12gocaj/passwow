@@ -29,9 +29,9 @@ jobs:
           pip install pyinstaller
 
       - name: Clean previous builds
+        shell: bash
         run: |
-          rmdir /s /q build || exit 0
-          rmdir /s /q dist || exit 0
+          rm -rf build dist
       - name: Build executable with PyInstaller
         run: |
           poetry run pyinstaller gui.spec
