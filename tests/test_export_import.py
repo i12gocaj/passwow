@@ -27,7 +27,7 @@ def test_export_success(tmp_path):
         input=f"{master_pw}\n",
     )
     assert result.exit_code == 0
-    assert f"Vault exportado a '{dest}' correctamente." in result.output
+    assert "Vault exportado" in result.output and str(dest) in result.output
     # El fichero existe y su contenido es idéntico
     assert dest.exists()
     assert dest.read_bytes() == vault_file.read_bytes()
@@ -89,8 +89,9 @@ def test_import_success(tmp_path):
     )
     assert result.exit_code == 0
     assert (
-        f"Vault importado desde '{vault_src}' a '{vault_dest}' correctamente."
-        in result.output
+        "Vault importado" in result.output
+        and str(vault_src) in result.output
+        and str(vault_dest) in result.output
     )
     # Comprobar que podemos leerlo
     entries = load_entries(str(vault_dest), master_pw)

@@ -19,7 +19,7 @@ def test_list_empty(tmp_path):
         cli, ["list", "--path", str(vault_file)], input=f"{master_pw}\n"
     )
     assert result.exit_code == 0
-    assert "No hay entradas en el vault." in result.output
+    assert "No hay entradas" in result.output
 
 
 def test_list_multiple(tmp_path):

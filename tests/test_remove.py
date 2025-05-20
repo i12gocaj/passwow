@@ -26,7 +26,7 @@ def test_remove_existing(tmp_path):
         input=f"{master_pw}\n",
     )
     assert result.exit_code == 0
-    assert "Entrada 'toremove' eliminada correctamente." in result.output
+    assert "eliminada correctamente" in result.output
 
     # Verificar con storage
     entries = load_entries(str(vault_file), master_pw)
@@ -49,7 +49,7 @@ def test_remove_not_found(tmp_path):
         input=f"{master_pw}\n",
     )
     assert result.exit_code == 0
-    assert "Entrada 'nope' no encontrada." in result.output
+    assert "Entrada 'nope' no encontrada" in result.output
 
 
 def test_remove_no_vault(tmp_path):

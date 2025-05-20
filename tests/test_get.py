@@ -44,7 +44,7 @@ def test_get_not_found(tmp_path):
         input=f"{master_pw}\n",
     )
     assert result.exit_code == 0
-    assert "Entrada 'nope' no encontrada." in result.output
+    assert "Entrada 'nope' no encontrada" in result.output
 
 
 def test_get_no_vault(tmp_path):

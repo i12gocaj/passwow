@@ -22,6 +22,11 @@ Interfaz de línea de comandos (CLI) con comandos para inicializar, añadir, lis
 - **Recuperación de clave maestra** mediante Shamir’s Secret Sharing con comandos `backup` y `recover`.
 - **Auto-lock**: la sesión de la contraseña maestra se mantiene activa durante un tiempo configurable (por defecto 5 min), tras el cual se vuelve a solicitar.
 - Protección anti-brute-force: 5 intentos de contraseña maestra, luego auto-wipe del vault.
+- **Protección contra manipulación**:
+  - Verificación de integridad mediante checksum (SHA-256) para el archivo del vault.
+  - Verificación de integridad mediante checksum (SHA-256) para el archivo de sesión.
+  - Permisos de archivo restrictivos (600) para el vault, archivo de sesión, contador de fallos y checksums.
+  - El contador de intentos fallidos se almacena ahora en el directorio `~/.passwow/` para evitar su eliminación accidental junto con el vault.
 - Tests completos con >80% de cobertura de código.
 - Análisis estático de seguridad con Bandit sin vulnerabilidades detectadas.
 - **Benchmark de rendimiento**: script `scripts/benchmark.py` para medir tiempos de desbloqueo.
@@ -82,8 +87,16 @@ poetry run python -m vault.cli recover \
 
 ### Auto-lock por inactividad
 
-Una vez desbloqueado (por ejemplo tras `add`, `get`, etc.), la sesión de la contraseña maestra se guarda en `~/.passwow/session.json`.  
+Una vez desbloqueado (por ejemplo tras `add`, `get`, etc.), la sesión de la contraseña maestra se guarda en `~/.passwow/session.json`. Este archivo ahora incluye un checksum para detectar manipulaciones.  
 Si transcurren más de 5 min sin usar comandos, la sesión caduca y el siguiente comando volverá a pedir la contraseña maestra.
+
+### Protección contra Manipulación y Anti-Brute-Force Mejorada
+
+- **Integridad del Vault**: Cada vez que el vault (`vault.dat` por defecto) es modificado (ej. `add`, `remove`, `init`) o accedido (`get`, `list`, `export`), se calcula y guarda un checksum (SHA-256) en un archivo acompañante (ej. `vault.dat.checksum`). Antes de cada operación de lectura o modificación, este checksum se verifica. Si hay una discrepancia, la operación se aborta para prevenir el uso de un vault corrupto o manipulado. Al exportar e importar, el archivo de checksum también se transfiere.
+- **Integridad del Archivo de Sesión**: El archivo `~/.passwow/session.json` que almacena la clave maestra temporalmente también está protegido por un checksum interno. Si el archivo es modificado externamente, la sesión se invalida.
+- **Contador de Intentos Fallidos Seguro**: El archivo que registra los intentos fallidos de ingreso de la contraseña maestra (ej. `vault.dat.fail`) ha sido movido al directorio `~/.passwow/`. Esto previene que un atacante pueda restaurar una copia del vault y resetear el contador simplemente borrando el archivo `.fail` junto al vault.
+- **Permisos Restrictivos**: Todos los archivos sensibles (`vault.dat`, `vault.dat.checksum`, `~/.passwow/session.json`, `~/.passwow/vault.dat.fail`) se guardan con permisos de archivo `600` (lectura/escritura solo para el propietario) siempre que sea posible en el sistema operativo.
+- **Prevención de Restauración Post-Wipe**: Si el vault es eliminado debido a demasiados intentos fallidos (auto-wipe), tanto el archivo del vault como su checksum son eliminados. Intentar restaurar una copia del vault (`vault.dat`) sin su correspondiente y válido archivo de checksum (o con uno que no coincida) resultará en un fallo de verificación de integridad, impidiendo el acceso. La importación de un vault también verifica su integridad si el archivo de checksum está presente.
 
 ### Autocompletado de comandos
 
@@ -149,6 +162,10 @@ Puedes habilitar autocompletado para tu CLI en tu shell favorito siguiendo estos
    ```
    Deberías ver sugerencias de todos los comandos y opciones disponibles.
 
+## ¿Qué es `vault.dat.checksum`?
+
+El archivo `vault.dat.checksum` almacena un hash SHA-256 del contenido cifrado de tu vault (`vault.dat`). Sirve para verificar la integridad del vault y detectar manipulaciones o corrupción antes de cada operación. Si el hash no coincide, el acceso se bloquea para proteger tus datos.
+
 ## Desarrollo
 
 Activa el entorno virtual de Poetry y ejecuta tests:
@@ -181,4 +198,4 @@ pytest --maxfail=1 --disable-warnings -q
 
 ## Licencia
 
-Este proyecto está bajo la licencia MIT.  
+Este proyecto está bajo la licencia MIT.
