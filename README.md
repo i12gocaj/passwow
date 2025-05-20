@@ -27,6 +27,10 @@ Interfaz de línea de comandos (CLI) con comandos para inicializar, añadir, lis
   - Verificación de integridad mediante checksum (SHA-256) para el archivo de sesión.
   - Permisos de archivo restrictivos (600) para el vault, archivo de sesión, contador de fallos y checksums.
   - El contador de intentos fallidos se almacena ahora en el directorio `~/.passwow/` para evitar su eliminación accidental junto con el vault.
+- **Borrado seguro**: el comando `delete` sobrescribe el vault y archivos sensibles antes de eliminarlos.
+- **Cambio de contraseña maestra**: comando `changepw` para rotar la clave sin perder datos.
+- **Exportación flexible**: comando `export` permite exportar el vault en formato cifrado, JSON o CSV para interoperabilidad o auditoría.
+- **Comprobador de contraseñas comprometidas**: comando `pwned` consulta la API de HaveIBeenPwned para saber si una contraseña ha sido filtrada.
 - Tests completos con >80% de cobertura de código.
 - Análisis estático de seguridad con Bandit sin vulnerabilidades detectadas.
 - **Benchmark de rendimiento**: script `scripts/benchmark.py` para medir tiempos de desbloqueo.
@@ -65,10 +69,29 @@ poetry run python -m vault.cli get --path vault.dat --name ejemplo
 poetry run python -m vault.cli remove --path vault.dat --name ejemplo
 
 # Exportar vault cifrado
-poetry run python -m vault.cli export --path vault.dat --file backup.dat
+poetry run python -m vault.cli export --path vault.dat --file backup.dat --format encrypted
 
 # Importar vault cifrado
 poetry run python -m vault.cli import --path vault.dat --file backup.dat
+```
+
+Ejemplos de uso de nuevas características:
+
+```bash
+# Borrado seguro del vault y archivos asociados
+poetry run python -m vault.cli delete --path vault.dat
+
+# Cambiar la contraseña maestra
+poetry run python -m vault.cli changepw --path vault.dat
+
+# Exportar vault a JSON o CSV
+poetry run python -m vault.cli export --path vault.dat --file backup.json --format json
+poetry run python -m vault.cli export --path vault.dat --file backup.csv --format csv
+
+# Comprobar si una contraseña ha sido filtrada (HaveIBeenPwned)
+poetry run python -m vault.cli pwned "miclaveultrasegura"
+# O interactivo (no se muestra en pantalla):
+poetry run python -m vault.cli pwned
 ```
 
 ### Backup y recuperación (Shamir’s Secret Sharing)

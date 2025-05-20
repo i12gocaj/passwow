@@ -10,6 +10,8 @@ import shutil
 import hashlib
 import secrets
 import string
+import requests  # Para el comando pwned
+import csv  # Para exportación CSV
 
 from vault.crypto import derive_key, encrypt_data, _SALT_SIZE
 from vault.storage import load_entries, save_entries
@@ -17,7 +19,6 @@ from vault.storage import load_entries, save_entries
 from pathlib import Path
 from cryptography.exceptions import InvalidTag
 
-from vault.recovery import split_secret, recover_secret
 import vault.session  # Modificado: Importar el módulo en lugar de la constante
 
 try:
@@ -91,6 +92,28 @@ def clear_fail(path: str):
     fpath = _fail_file(path)
     if fpath.exists():
         fpath.unlink()
+
+
+# --- Utilidad para borrado seguro ---
+def secure_delete_file(path: Path, passes: int = 3):
+    """Sobrescribe el archivo con datos aleatorios antes de eliminarlo."""
+    if not path.exists() or not path.is_file():
+        return
+    length = path.stat().st_size
+    try:
+        with open(path, "r+b") as f:
+            for _ in range(passes):
+                f.seek(0)
+                f.write(os.urandom(length))
+                f.flush()
+                os.fsync(f.fileno())
+        path.unlink()
+    except Exception:
+        # Si falla, intentar al menos borrar
+        try:
+            path.unlink()
+        except Exception as e:
+            click.secho(f"[ADVERTENCIA] No se pudo eliminar {path}: {e}", fg="yellow")
 
 
 @click.group()
@@ -350,21 +373,48 @@ def remove(path, entry_name):
     )
 
 
+# --- Comando para cambiar la contraseña maestra ---
 @cli.command()
-@click.option("--path", default="vault.dat", help="Ruta del fichero cifrado de origen")
-@click.option(
-    "--file", "dest_path", required=True, help="Ruta de destino para exportar el vault"
-)
-def export(path, dest_path):
+@click.option("--path", default="vault.dat", help="Ruta del vault a modificar")
+def changepw(path):
     """
-    Exporta el vault cifrado a otro fichero, validando la contraseña maestra y el checksum.
+    Cambia la contraseña maestra del vault de forma segura.
     """
-    password = click.prompt("Contraseña maestra", hide_input=True)
-
     if not Path(path).exists():
         click.secho(f"[!] No se encontró el vault en '{path}'.", fg="red", bold=True)
         return
+    old_pw = click.prompt("Contraseña maestra actual", hide_input=True)
+    entries = _handle_load_entries(path, old_pw)
+    if entries is None:
+        return
+    new_pw = click.prompt(
+        "Nueva contraseña maestra", hide_input=True, confirmation_prompt=True
+    )
+    save_entries(path, new_pw, entries)
+    _write_vault_checksum(path)
+    click.secho("✅ Contraseña maestra cambiada correctamente.", fg="green", bold=True)
 
+
+# --- Exportación a JSON/CSV ---
+@cli.command()
+@click.option("--path", default="vault.dat", help="Ruta del vault de origen")
+@click.option(
+    "--file", "dest_path", required=True, help="Ruta de destino para exportar"
+)
+@click.option(
+    "--format",
+    type=click.Choice(["bin", "json", "csv"]),
+    default="bin",
+    help="Formato de exportación: bin (cifrado), json, csv",
+)
+def export(path, dest_path, format):
+    """
+    Exporta el vault en formato cifrado (bin), JSON o CSV.
+    """
+    password = click.prompt("Contraseña maestra", hide_input=True)
+    if not Path(path).exists():
+        click.secho(f"[!] No se encontró el vault en '{path}'.", fg="red", bold=True)
+        return
     if not _verify_vault_checksum(path):
         click.secho(
             f"[ALERTA] El archivo del vault '{path}' parece haber sido manipulado. Exportación cancelada por seguridad.",
@@ -372,132 +422,95 @@ def export(path, dest_path):
             bold=True,
         )
         return
-
     try:
-        _ = load_entries(path, password)
+        entries = load_entries(path, password)
     except InvalidTag:
         click.secho("Contraseña maestra incorrecta. No se puede exportar.", fg="yellow")
         return
     except Exception as e:
         click.secho(f"[ERROR] No se pudo verificar el vault: {e}", fg="red", bold=True)
         return
-
-    try:
-        shutil.copy2(path, dest_path)
-        Path(dest_path).chmod(0o600)
-        checksum_path = _get_vault_integrity_path(path)
-        dest_checksum_path = _get_vault_integrity_path(dest_path)
-        if checksum_path.exists():
-            shutil.copy2(checksum_path, dest_checksum_path)
-            dest_checksum_path.chmod(0o600)
-        else:
-            _write_vault_checksum(dest_path)
-        click.secho(
-            f"✅ Vault exportado correctamente a '{dest_path}'.", fg="green", bold=True
-        )
-    except Exception as e:
-        click.secho(f"[ERROR] durante la exportación: {e}", fg="red", bold=True)
-
-
-@cli.command(name="import")
-@click.option(
-    "--path", default="vault.dat", help="Ruta destino donde se importará el vault"
-)
-@click.option("--file", "src_path", required=True, help="Fichero cifrado a importar")
-def import_vault(path, src_path):
-    """
-    Importa un vault cifrado desde otro fichero, incluyendo su checksum si existe.
-    """
-    src_vault_p = Path(src_path)
-    dest_vault_p = Path(path)
-
-    if not src_vault_p.exists():
-        click.secho(
-            f"[!] No se encontró el fichero de importación en '{src_path}'.",
-            fg="red",
-            bold=True,
-        )
-        return
-
-    src_checksum_p = _get_vault_integrity_path(src_path)
-    if src_checksum_p.exists():
-        if not _verify_vault_checksum(src_path):
+    if format == "bin":
+        try:
+            shutil.copy2(path, dest_path)
+            Path(dest_path).chmod(0o600)
+            checksum_path = _get_vault_integrity_path(path)
+            dest_checksum_path = _get_vault_integrity_path(dest_path)
+            if checksum_path.exists():
+                shutil.copy2(checksum_path, dest_checksum_path)
+                dest_checksum_path.chmod(0o600)
+            else:
+                _write_vault_checksum(dest_path)
             click.secho(
-                f"[ALERTA] El archivo del vault de origen '{src_path}' parece manipulado. Importación cancelada por seguridad.",
-                fg="red",
+                f"✅ Vault exportado correctamente a '{dest_path}'.",
+                fg="green",
                 bold=True,
             )
+        except Exception as e:
+            click.secho(f"[ERROR] durante la exportación: {e}", fg="red", bold=True)
+    elif format == "json":
+        try:
+            with open(dest_path, "w", encoding="utf-8") as f:
+                json.dump(entries, f, ensure_ascii=False, indent=2)
+            Path(dest_path).chmod(0o600)
+            click.secho(
+                f"✅ Vault exportado en JSON a '{dest_path}'.", fg="green", bold=True
+            )
+        except Exception as e:
+            click.secho(f"[ERROR] al exportar JSON: {e}", fg="red", bold=True)
+    elif format == "csv":
+        try:
+            with open(dest_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(
+                    f, fieldnames=["name", "username", "password", "note", "timestamp"]
+                )
+                writer.writeheader()
+                for entry in entries:
+                    writer.writerow(entry)
+            Path(dest_path).chmod(0o600)
+            click.secho(
+                f"✅ Vault exportado en CSV a '{dest_path}'.", fg="green", bold=True
+            )
+        except Exception as e:
+            click.secho(f"[ERROR] al exportar CSV: {e}", fg="red", bold=True)
+
+
+# --- Comando para comprobar contraseñas comprometidas (HaveIBeenPwned) ---
+@cli.command()
+@click.argument("password", required=False)
+def pwned(password):
+    """
+    Comprueba si una contraseña ha sido comprometida usando la API de HaveIBeenPwned.
+    Si no se pasa como argumento, la pide de forma oculta.
+    """
+    if not password:
+        password = click.prompt("Contraseña a comprobar", hide_input=True)
+    sha1 = (
+        hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()
+    )  # noqa: B324
+    prefix, suffix = sha1[:5], sha1[5:]
+    try:
+        resp = requests.get(f"https://api.pwnedpasswords.com/range/{prefix}", timeout=5)
+        if resp.status_code != 200:
+            click.secho(
+                "[ERROR] No se pudo consultar la API de HaveIBeenPwned.", fg="red"
+            )
             return
-    else:
+        hashes = (line.split(":") for line in resp.text.splitlines())
+        for suf, count in hashes:
+            if suf == suffix:
+                click.secho(
+                    f"[ALERTA] ¡Esta contraseña ha aparecido {count} veces en filtraciones!",
+                    fg="red",
+                    bold=True,
+                )
+                return
         click.secho(
-            f"[ADVERTENCIA] El vault de origen '{src_path}' no tiene archivo de checksum para verificar su integridad.",
-            fg="yellow",
-        )
-
-    try:
-        shutil.copy2(src_path, path)
-        dest_vault_p.chmod(0o600)
-        dest_checksum_p = _get_vault_integrity_path(path)
-        if src_checksum_p.exists():
-            shutil.copy2(src_checksum_p, dest_checksum_p)
-            dest_checksum_p.chmod(0o600)
-        else:
-            _write_vault_checksum(path)
-        clear_fail(path)
-        click.secho(
-            f"✅ Vault importado correctamente desde '{src_path}' a '{path}'.",
+            "✅ Esta contraseña NO aparece en la base de datos de filtraciones conocidas.",
             fg="green",
-            bold=True,
         )
     except Exception as e:
-        click.secho(f"[ERROR] durante la importación: {e}", fg="red", bold=True)
-
-
-@cli.command()
-@click.option(
-    "--shares", type=int, required=True, help="Número total de shares a generar"
-)
-@click.option(
-    "--threshold",
-    type=int,
-    required=True,
-    help="Número mínimo de shares para recuperar",
-)
-def backup(shares, threshold):
-    """
-    Genera N shares de la contraseña maestra, recuperables con K de ellas (Shamir).
-    """
-    master_pw = click.prompt("Contraseña maestra", hide_input=True)
-    parts = split_secret(master_pw, shares, threshold)
-    click.secho(
-        "Shares generadas (guárdalas en un lugar seguro):", fg="cyan", bold=True
-    )
-    for part in parts:
-        click.echo(part)
-
-
-@cli.command()
-@click.option(
-    "--share",
-    "shares",
-    multiple=True,
-    required=True,
-    help="Shares para recuperar la contraseña",
-)
-def recover(shares):
-    """
-    Recupera la contraseña maestra a partir de shares (Shamir).
-    """
-    try:
-        master_pw = recover_secret(list(shares))
-    except Exception as e:
-        click.secho(
-            f"[ERROR] No se pudo recuperar el secreto: {e}", fg="red", bold=True
-        )
-        return
-    clear_fail("vault.dat")
-    click.secho("✅ Contraseña maestra recuperada exitosamente:", fg="green", bold=True)
-    click.echo(master_pw)
+        click.secho(f"[ERROR] No se pudo consultar la API: {e}", fg="red")
 
 
 @cli.command()
@@ -527,10 +540,11 @@ def delete(path):
         click.secho("Operación cancelada.", fg="yellow")
         return
 
+    # Borrado seguro
     for f in [vault_p, checksum_p, fail_p, session_p]:
         try:
-            if f.exists():
-                f.unlink()
+            if f.exists() and f.is_file():
+                secure_delete_file(f)
         except Exception as e:
             click.secho(f"[ADVERTENCIA] No se pudo eliminar {f}: {e}", fg="yellow")
     click.secho(
@@ -538,6 +552,63 @@ def delete(path):
         fg="green",
         bold=True,
     )
+
+
+# --- Comando para importar vaults ---
+@cli.command(name="import")
+@click.option(
+    "--path", default="vault.dat", help="Ruta destino donde se importará el vault"
+)
+@click.option("--file", "src_path", required=True, help="Fichero cifrado a importar")
+def import_vault(path, src_path):
+    """
+    Importa un vault cifrado desde otro fichero, incluyendo su checksum si existe.
+    """
+    src_vault_p = Path(src_path)
+    dest_vault_p = Path(path)
+
+    if not src_vault_p.exists():
+        click.secho(
+            f"[!] No se encontró el fichero de importación en '{src_path}'.",
+            fg="red",
+            bold=True,
+        )
+        return 0
+
+    src_checksum_p = _get_vault_integrity_path(src_path)
+    if src_checksum_p.exists():
+        if not _verify_vault_checksum(src_path):
+            click.secho(
+                f"[ALERTA] El archivo del vault de origen '{src_path}' parece manipulado. Importación cancelada por seguridad.",
+                fg="red",
+                bold=True,
+            )
+            return 0
+    else:
+        click.secho(
+            f"[ADVERTENCIA] El vault de origen '{src_path}' no tiene archivo de checksum para verificar su integridad.",
+            fg="yellow",
+        )
+
+    try:
+        shutil.copy2(src_path, path)
+        dest_vault_p.chmod(0o600)
+        dest_checksum_p = _get_vault_integrity_path(path)
+        if src_checksum_p.exists():
+            shutil.copy2(src_checksum_p, dest_checksum_p)
+            dest_checksum_p.chmod(0o600)
+        else:
+            _write_vault_checksum(path)
+        clear_fail(path)
+        click.secho(
+            f"✅ Vault importado correctamente desde '{src_path}' a '{path}'.",
+            fg="green",
+            bold=True,
+        )
+        return 0
+    except Exception as e:
+        click.secho(f"[ERROR] durante la importación: {e}", fg="red", bold=True)
+        return 0
 
 
 if __name__ == "__main__":
