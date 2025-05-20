@@ -36,7 +36,7 @@ jobs:
         run: poetry run pyinstaller gui.spec
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: windows-executable
+          name: gui-windows
           path: dist/gui.exe
