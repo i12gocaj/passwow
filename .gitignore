@@ -20,10 +20,22 @@ vault.dat
 copia.dat
 *.dat.fail
 shares.txt
-docs/
+
+# PyInstaller
+build/
+dist/
+*.spec
 
 # Carpetas de configuración de editores
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
+
+# Archivos temporales y logs
+*.log
+*.tmp
+
+# Otros
+poetry.lock

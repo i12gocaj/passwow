@@ -454,25 +454,29 @@ def export(path, dest_path, format):
                 json.dump(entries, f, ensure_ascii=False, indent=2)
             Path(dest_path).chmod(0o600)
             click.secho(
-                f"✅ Vault exportado en JSON a '{dest_path}'.", fg="green", bold=True
+                f"Vault exportado correctamente a '{dest_path}' en formato JSON.",
+                fg="green",
+                bold=True,
             )
         except Exception as e:
-            click.secho(f"[ERROR] al exportar JSON: {e}", fg="red", bold=True)
+            click.secho(f"[ERROR] durante la exportación: {e}", fg="red", bold=True)
     elif format == "csv":
         try:
-            with open(dest_path, "w", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(
-                    f, fieldnames=["name", "username", "password", "note", "timestamp"]
-                )
+            # Usar todos los campos posibles
+            fieldnames = ["name", "username", "password", "note", "timestamp"]
+            with open(dest_path, "w", encoding="utf-8", newline="") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
                 for entry in entries:
                     writer.writerow(entry)
             Path(dest_path).chmod(0o600)
             click.secho(
-                f"✅ Vault exportado en CSV a '{dest_path}'.", fg="green", bold=True
+                f"Vault exportado correctamente a '{dest_path}' en formato CSV.",
+                fg="green",
+                bold=True,
             )
         except Exception as e:
-            click.secho(f"[ERROR] al exportar CSV: {e}", fg="red", bold=True)
+            click.secho(f"[ERROR] durante la exportación: {e}", fg="red", bold=True)
 
 
 # --- Comando para comprobar contraseñas comprometidas (HaveIBeenPwned) ---
@@ -526,6 +530,18 @@ def delete(path):
 
     if not vault_p.exists():
         click.secho(f"[!] No se encontró el vault en '{path}'.", fg="red", bold=True)
+        return
+
+    # Solicitar contraseña maestra y validarla antes de borrar
+    password = click.prompt("Contraseña maestra", hide_input=True)
+    try:
+        load_entries(str(vault_p), password)  # Solo validar, no asignar
+    except Exception:
+        click.secho(
+            "[ERROR] Contraseña maestra incorrecta. No se puede borrar el vault.",
+            fg="red",
+            bold=True,
+        )
         return
 
     click.secho(

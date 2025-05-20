@@ -5,6 +5,8 @@
 [![Security](https://img.shields.io/badge/security-bandit_passed-green)]()
 
 Gestor de contraseñas **local**, **minimalista** y **muy seguro**, basado en AES-256 GCM y derivación de clave con Scrypt.  
+Incluye tanto una interfaz de línea de comandos (CLI) como una **aplicación gráfica (GUI) para macOS** para gestionar tus contraseñas de forma segura y flexible.
+
 Interfaz de línea de comandos (CLI) con comandos para inicializar, añadir, listar, obtener, eliminar, exportar e importar vaults cifrados.
 
 ## Características
@@ -47,6 +49,43 @@ cd passwow
 curl -sSL https://install.python-poetry.org | python3 -
 poetry install
 ```
+
+## Aplicación gráfica para macOS
+
+Además de la CLI, passwow incluye una **aplicación gráfica (GUI) para macOS** empaquetada con PyInstaller.
+
+### Ejecutar la app gráfica
+
+Tras descargar o compilar el bundle, puedes abrir la app desde Finder o desde terminal:
+
+```bash
+open dist/gui.app
+```
+
+La app utiliza el mismo vault seguro que la CLI y permite gestionar tus contraseñas de forma visual.
+
+### Empaquetar la app tú mismo
+
+Si modificas el código y quieres volver a generar la app:
+
+1. Instala PyInstaller:
+   ```bash
+   poetry run pip install pyinstaller
+   ```
+2. Ejecuta el empaquetado:
+   ```bash
+   poetry run pyinstaller gui.spec
+   ```
+   Esto generará `dist/gui.app` y el ejecutable standalone `dist/gui`.
+
+- El icono personalizado está en `icon.icns` y se incluye automáticamente.
+- El vault y su checksum se guardan junto al ejecutable.
+
+### Distribución
+
+Puedes distribuir la carpeta `dist/gui.app` como una app estándar de macOS. Si quieres firmar o notarizar la app para Gatekeeper, consulta la documentación oficial de Apple.
+
+---
 
 ## Uso
 
@@ -233,3 +272,29 @@ pytest --maxfail=1 --disable-warnings -q
 ## Licencia
 
 Este proyecto está bajo la licencia MIT.
+
+---
+
+## Publicación y comunidad
+
+Este repositorio está listo para publicación pública en GitHub. Puedes contribuir, reportar issues o sugerir mejoras:
+
+- Abre un [Issue](https://github.com/i12gocaj/passwow/issues) para reportar bugs o solicitar nuevas funciones.
+- Haz un fork y envía un Pull Request para contribuir código.
+- Consulta la documentación y ejemplos en este README.
+
+### ¿Cómo usar la CLI y la app gráfica?
+
+- **CLI:**
+  - Ejecuta comandos como `poetry run python -m vault.cli ...` o instala el paquete y usa `vault ...` directamente.
+  - Soporta autocompletado, backup, recuperación, exportación/importación, y protección avanzada.
+- **App gráfica (macOS):**
+  - Ejecuta `open dist/gui.app` o haz doble clic en el Finder.
+  - Permite gestionar el vault de forma visual, con las mismas garantías de seguridad.
+
+### Soporte
+
+- [Documentación actualizada en el README](https://github.com/i12gocaj/passwow#readme)
+- Contacto: i12gocaj@uco.es
+
+---
