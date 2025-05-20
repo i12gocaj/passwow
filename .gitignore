@@ -40,3 +40,5 @@ build/
 
 # Otros
 poetry.lock
+
+# Eliminar icon.ico si no se usa en macOS ni en la app.
