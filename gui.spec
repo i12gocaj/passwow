@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_submodules
 
 
 a = Analysis(
@@ -6,18 +7,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[
-        'cryptography',
-        'cryptography.hazmat.backends',
-        'cryptography.hazmat.bindings._rust',
-        'cryptography.hazmat.bindings._openssl',
-        'cryptography.hazmat.primitives',
-        'cryptography.hazmat.primitives.ciphers',
-        'cryptography.hazmat.primitives.kdf.scrypt',
-        'cryptography.hazmat.primitives.ciphers.aead',
+    hiddenimports=collect_submodules('cryptography') + collect_submodules('secretsharing') + [
         'requests',
         'tkinter',
-        'secretsharing',
     ],
     hookspath=[],
     hooksconfig={},

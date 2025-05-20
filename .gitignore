@@ -23,12 +23,9 @@ shares.txt
 
 # PyInstaller
 build/
-# dist/ solo se ignora para Windows, no para macOS
-# dist/ se ignora excepto dist/gui.exe y dist/gui.app
-# Excluye todo menos los ejecutables principales
-/dist/
-!/dist/gui.exe
-!/dist/gui.app
+# Permite la carpeta dist/ y su contenido para que la app de macOS y el .exe de Windows estén disponibles
+!dist/
+!dist/**
 
 # Carpetas de configuración de editores
 .vscode/
