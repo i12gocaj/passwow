@@ -28,17 +28,15 @@ jobs:
         run: |
           pip install pyinstaller
 
-      - name: Clean previous builds
+      - name: Clean build and dist directories
+        run: rm -rf build dist
         shell: bash
-        run: |
-          rm -rf build dist
-      - name: Build executable with PyInstaller
-        run: |
-          poetry run pyinstaller gui.spec
-        working-directory: ${{ github.workspace }}
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Build executable
+        run: poetry run pyinstaller gui.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
           name: windows-executable
           path: dist/gui.exe
