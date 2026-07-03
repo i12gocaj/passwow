@@ -4,44 +4,45 @@
 [![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)]()
 [![Security](https://img.shields.io/badge/security-bandit_passed-green)]()
 
-Gestor de contraseñas **local**, **minimalista** y **muy seguro**, basado en AES-256 GCM y derivación de clave con Scrypt.  
-Incluye tanto una interfaz de línea de comandos (CLI) como una **aplicación gráfica (GUI) para macOS** para gestionar tus contraseñas de forma segura y flexible.
+**Local**, **minimalist**, and security-focused password manager based on AES-256 GCM and Scrypt key derivation.
 
-Interfaz de línea de comandos (CLI) con comandos para inicializar, añadir, listar, obtener, eliminar, exportar e importar vaults cifrados.
+It includes both a command-line interface (CLI) and a **macOS graphical app (GUI)** for managing passwords securely and flexibly.
 
-## Características
+The CLI includes commands to initialize, add, list, retrieve, remove, export, and import encrypted vaults.
 
-- Cifrado AES-256 GCM y derivación de clave maestra con Scrypt (parametrización segura).
-- Vault local en disco con opción de sincronización manual (`export`/`import`).
-- Comandos CLI:  
-  - `init` — Inicializar vault.  
-  - `add` — Añadir nueva entrada.  
-  - `get` — Recuperar entrada.  
-  - `list` — Listar todas las entradas.  
-  - `remove` — Eliminar entrada.  
-  - `export` — Exportar vault cifrado.  
-  - `import` — Importar vault cifrado.  
-- **Recuperación de clave maestra** mediante Shamir’s Secret Sharing con comandos `backup` y `recover`.
-- **Auto-lock**: la sesión de la contraseña maestra se mantiene activa durante un tiempo configurable (por defecto 5 min), tras el cual se vuelve a solicitar.
-- Protección anti-brute-force: 5 intentos de contraseña maestra, luego auto-wipe del vault.
-- **Protección contra manipulación**:
-  - Verificación de integridad mediante checksum (SHA-256) para el archivo del vault.
-  - Verificación de integridad mediante checksum (SHA-256) para el archivo de sesión.
-  - Permisos de archivo restrictivos (600) para el vault, archivo de sesión, contador de fallos y checksums.
-  - El contador de intentos fallidos se almacena ahora en el directorio `~/.passwow/` para evitar su eliminación accidental junto con el vault.
-- **Borrado seguro**: el comando `delete` sobrescribe el vault y archivos sensibles antes de eliminarlos.
-- **Cambio de contraseña maestra**: comando `changepw` para rotar la clave sin perder datos.
-- **Exportación flexible**: comando `export` permite exportar el vault en formato cifrado, JSON o CSV para interoperabilidad o auditoría.
-- **Comprobador de contraseñas comprometidas**: comando `pwned` consulta la API de HaveIBeenPwned para saber si una contraseña ha sido filtrada.
-- Tests completos con >80% de cobertura de código.
-- Análisis estático de seguridad con Bandit sin vulnerabilidades detectadas.
-- **Benchmark de rendimiento**: script `scripts/benchmark.py` para medir tiempos de desbloqueo.
-- **Fuzz testing**: pruebas con Hypothesis para validar almacenamiento y recuperación con datos aleatorios.
-- **Autocompletado**: comando `completion` para generar scripts de autocompletion en Bash, Zsh y Fish.
+## Features
 
-## Instalación
+- AES-256 GCM encryption and master-key derivation with Scrypt using secure parameters.
+- Local vault stored on disk, with manual synchronization through `export` / `import`.
+- CLI commands:
+  - `init` - Initialize a vault.
+  - `add` - Add a new entry.
+  - `get` - Retrieve an entry.
+  - `list` - List all entries.
+  - `remove` - Remove an entry.
+  - `export` - Export an encrypted vault.
+  - `import` - Import an encrypted vault.
+- **Master-key recovery** through Shamir's Secret Sharing with `backup` and `recover`.
+- **Auto-lock**: the master-password session remains active for a configurable time (5 minutes by default), then it is requested again.
+- Anti-brute-force protection: 5 master-password attempts, then automatic vault wipe.
+- **Tamper protection**:
+  - Integrity verification through SHA-256 checksum for the vault file.
+  - Integrity verification through SHA-256 checksum for the session file.
+  - Restrictive file permissions (`600`) for the vault, session file, failure counter, and checksums.
+  - The failed-attempt counter is stored in `~/.passwow/` to prevent accidental deletion together with the vault.
+- **Secure deletion**: `delete` overwrites the vault and sensitive files before removing them.
+- **Master-password rotation**: `changepw` rotates the key without losing data.
+- **Flexible export**: `export` can produce encrypted, JSON, or CSV output for interoperability or auditing.
+- **Compromised-password checker**: `pwned` queries the HaveIBeenPwned API to check whether a password has leaked.
+- Test suite with more than 80% code coverage.
+- Static security analysis with Bandit and no detected vulnerabilities.
+- **Performance benchmark**: `scripts/benchmark.py` measures unlock times.
+- **Fuzz testing** with Hypothesis to validate storage and retrieval with random data.
+- **Shell completion**: `completion` generates autocomplete scripts for Bash, Zsh, and Fish.
 
-Requisitos: Python 3.10+ y [Poetry](https://python-poetry.org/).
+## Installation
+
+Requirements: Python 3.10+ and [Poetry](https://python-poetry.org/).
 
 ```bash
 git clone https://github.com/i12gocaj/passwow.git
@@ -50,92 +51,93 @@ curl -sSL https://install.python-poetry.org | python3 -
 poetry install
 ```
 
-## Aplicación gráfica para macOS
+## macOS Graphical App
 
-Además de la CLI, passwow incluye una **aplicación gráfica (GUI) para macOS** empaquetada con PyInstaller.
+In addition to the CLI, passwow includes a **macOS graphical app (GUI)** packaged with PyInstaller.
 
-### Ejecutar la app gráfica
+### Running the GUI
 
-Tras descargar o compilar el bundle, puedes abrir la app desde Finder o desde terminal:
+After downloading or building the bundle, open the app from Finder or from the terminal:
 
 ```bash
 open dist/gui.app
 ```
 
-La app utiliza el mismo vault seguro que la CLI y permite gestionar tus contraseñas de forma visual.
+The app uses the same secure vault as the CLI and lets you manage passwords visually.
 
-### Empaquetar la app tú mismo
+### Building the GUI Yourself
 
-Si modificas el código y quieres volver a generar la app:
+If you modify the code and want to rebuild the app:
 
-1. Instala PyInstaller:
+1. Install PyInstaller:
    ```bash
    poetry run pip install pyinstaller
    ```
-2. Ejecuta el empaquetado:
+2. Run the packaging command:
    ```bash
    poetry run pyinstaller gui.spec
    ```
-   Esto generará `dist/gui.app` y el ejecutable standalone `dist/gui`.
+   This generates `dist/gui.app` and the standalone `dist/gui` executable.
 
-- El icono personalizado está en `icon.icns` y se incluye automáticamente.
-- El vault y su checksum se guardan junto al ejecutable.
+- The custom icon is in `icon.icns` and is included automatically.
+- The vault and checksum are stored next to the executable.
 
----
+## Usage
 
-## Uso
-
-Ejecuta los comandos desde Poetry o directamente con Python:
+Run commands through Poetry or directly with Python:
 
 ```bash
-# Inicializar un nuevo vault
+# Initialize a new vault
 poetry run python -m vault.cli init --path vault.dat
 
-# Añadir una entrada
-poetry run python -m vault.cli add --path vault.dat --name ejemplo --user miusuario
+# Add an entry
+poetry run python -m vault.cli add --path vault.dat --name example --user myuser
 
-# Listar entradas
+# List entries
 poetry run python -m vault.cli list --path vault.dat
 
-# Obtener datos de una entrada
-poetry run python -m vault.cli get --path vault.dat --name ejemplo
+# Retrieve entry data
+poetry run python -m vault.cli get --path vault.dat --name example
 
-# Eliminar una entrada
-poetry run python -m vault.cli remove --path vault.dat --name ejemplo
+# Remove an entry
+poetry run python -m vault.cli remove --path vault.dat --name example
 
-# Exportar vault cifrado
+# Export encrypted vault
 poetry run python -m vault.cli export --path vault.dat --file backup.dat --format encrypted
 
-# Importar vault cifrado
+# Import encrypted vault
 poetry run python -m vault.cli import --path vault.dat --file backup.dat
 ```
 
-Ejemplos de uso de nuevas características:
+Examples for additional features:
 
 ```bash
-# Borrado seguro del vault y archivos asociados
+# Secure deletion of the vault and related files
 poetry run python -m vault.cli delete --path vault.dat
 
-# Cambiar la contraseña maestra
+# Change the master password
 poetry run python -m vault.cli changepw --path vault.dat
 
-# Exportar vault a JSON o CSV
+# Export vault to JSON or CSV
 poetry run python -m vault.cli export --path vault.dat --file backup.json --format json
 poetry run python -m vault.cli export --path vault.dat --file backup.csv --format csv
 
-# Comprobar si una contraseña ha sido filtrada (HaveIBeenPwned)
-poetry run python -m vault.cli pwned "miclaveultrasegura"
-# O interactivo (no se muestra en pantalla):
+# Check whether a password has leaked (HaveIBeenPwned)
+poetry run python -m vault.cli pwned "myultrasecurepassword"
+# Or interactive mode (password is not shown on screen):
 poetry run python -m vault.cli pwned
 ```
 
-### Backup y recuperación (Shamir’s Secret Sharing)
+### Backup and Recovery (Shamir's Secret Sharing)
 
-Para generar *n* shares y un umbral *k*:
+To generate *n* shares with threshold *k*:
+
 ```bash
 poetry run python -m vault.cli backup --shares 5 --threshold 3
 ```
-Esto imprimirá 5 líneas con `id-hexdata`. Para recuperar la contraseña con cualquier combinación de 3 shares:
+
+This prints 5 lines with `id-hexdata`. To recover the password with any combination of 3 shares:
+
 ```bash
 poetry run python -m vault.cli recover \
   --share "1-<hexdata>" \
@@ -143,41 +145,43 @@ poetry run python -m vault.cli recover \
   --share "5-<hexdata>"
 ```
 
-### Auto-lock por inactividad
+### Auto-Lock on Inactivity
 
-Una vez desbloqueado (por ejemplo tras `add`, `get`, etc.), la sesión de la contraseña maestra se guarda en `~/.passwow/session.json`. Este archivo ahora incluye un checksum para detectar manipulaciones.  
-Si transcurren más de 5 min sin usar comandos, la sesión caduca y el siguiente comando volverá a pedir la contraseña maestra.
+Once unlocked (for example after `add`, `get`, etc.), the master-password session is stored in `~/.passwow/session.json`. This file now includes a checksum to detect tampering.
 
-## Cobertura de tests y ramas defensivas
+If more than 5 minutes pass without using commands, the session expires and the next command asks for the master password again.
 
-El proyecto cuenta con una suite de tests exhaustiva que cubre todos los comandos, errores, condiciones límite y defensivas. El coverage real es superior al 96% y todas las rutas de código relevantes para la seguridad y la funcionalidad están cubiertas.
+## Test Coverage and Defensive Branches
 
-Las únicas líneas no cubiertas corresponden a ramas imposibles de ejecutar en un entorno de test estándar, como:
-- Protecciones del tipo `if __name__ == "__main__"` (ejecución directa del CLI).
-- Returns tempranos silenciosos o defensivos que solo se activan en condiciones anómalas o de corrupción extrema.
-- Excepciones de librerías externas que no se pueden forzar sin manipulación interna o monkeypatching inseguro.
+The project includes an extensive test suite covering all commands, errors, edge cases, and defensive conditions. Real coverage is above 96%, and all relevant code paths for security and functionality are covered.
 
-Esto significa que el coverage reportado es el máximo alcanzable en condiciones reales y seguras. No quedan prints de depuración ni ramas sin cubrir que sean relevantes para la robustez, seguridad o experiencia de usuario.
+The only uncovered lines are branches that cannot be executed in a standard test environment, such as:
 
-### Protección contra Manipulación y Anti-Brute-Force Mejorada
+- `if __name__ == "__main__"` guards for direct CLI execution.
+- Silent or defensive early returns that only trigger under abnormal or extreme corruption conditions.
+- External-library exceptions that cannot be forced without unsafe internal manipulation or monkeypatching.
 
-- **Integridad del Vault**: Cada vez que el vault (`vault.dat` por defecto) es modificado (ej. `add`, `remove`, `init`) o accedido (`get`, `list`, `export`), se calcula y guarda un checksum (SHA-256) en un archivo acompañante (ej. `vault.dat.checksum`). Antes de cada operación de lectura o modificación, este checksum se verifica. Si hay una discrepancia, la operación se aborta para prevenir el uso de un vault corrupto o manipulado. Al exportar e importar, el archivo de checksum también se transfiere.
-- **Integridad del Archivo de Sesión**: El archivo `~/.passwow/session.json` que almacena la clave maestra temporalmente también está protegido por un checksum interno. Si el archivo es modificado externamente, la sesión se invalida.
-- **Contador de Intentos Fallidos Seguro**: El archivo que registra los intentos fallidos de ingreso de la contraseña maestra (ej. `vault.dat.fail`) ha sido movido al directorio `~/.passwow/`. Esto previene que un atacante pueda restaurar una copia del vault y resetear el contador simplemente borrando el archivo `.fail` junto al vault.
-- **Permisos Restrictivos**: Todos los archivos sensibles (`vault.dat`, `vault.dat.checksum`, `~/.passwow/session.json`, `~/.passwow/vault.dat.fail`) se guardan con permisos de archivo `600` (lectura/escritura solo para el propietario) siempre que sea posible en el sistema operativo.
-- **Prevención de Restauración Post-Wipe**: Si el vault es eliminado debido a demasiados intentos fallidos (auto-wipe), tanto el archivo del vault como su checksum son eliminados. Intentar restaurar una copia del vault (`vault.dat`) sin su correspondiente y válido archivo de checksum (o con uno que no coincida) resultará en un fallo de verificación de integridad, impidiendo el acceso. La importación de un vault también verifica su integridad si el archivo de checksum está presente.
+That means the reported coverage is the maximum achievable under realistic and safe conditions. There are no debug prints or uncovered branches relevant to robustness, security, or user experience.
 
-### Autocompletado de comandos
+### Improved Tamper Protection and Anti-Brute-Force
 
-Puedes habilitar autocompletado para tu CLI en tu shell favorito siguiendo estos pasos:
+- **Vault integrity**: whenever the vault (`vault.dat` by default) is modified (`add`, `remove`, `init`) or accessed (`get`, `list`, `export`), a SHA-256 checksum is calculated and stored in a companion file such as `vault.dat.checksum`. Before every read or write operation, that checksum is verified. If it does not match, the operation is aborted to prevent use of a corrupted or manipulated vault. During export/import, the checksum file is transferred too.
+- **Session-file integrity**: `~/.passwow/session.json`, which temporarily stores the master key, is also protected by an internal checksum. If the file is externally modified, the session is invalidated.
+- **Safe failed-attempt counter**: the file that tracks failed master-password attempts, such as `vault.dat.fail`, has been moved to `~/.passwow/`. This prevents an attacker from restoring a copy of the vault and resetting the counter by simply deleting the `.fail` file next to it.
+- **Restrictive permissions**: sensitive files (`vault.dat`, `vault.dat.checksum`, `~/.passwow/session.json`, `~/.passwow/vault.dat.fail`) are saved with `600` permissions whenever the operating system allows it.
+- **Post-wipe restore prevention**: if the vault is deleted due to too many failed attempts, both the vault file and its checksum are removed. Restoring a copy of `vault.dat` without a matching valid checksum, or with a mismatched checksum, fails integrity verification and blocks access. Vault import also verifies integrity when a checksum file is present.
 
-1. **Instalar la dependencia** (solo si no lo has hecho):
+### Shell Completion
+
+Enable autocomplete for your favourite shell:
+
+1. **Install the dependency** if you have not already:
    ```bash
    poetry add click-completion --dev
    ```
 
-2. **Generar el script** de autocompletado para tu shell:
-   
+2. **Generate the completion script** for your shell:
+
    - **Bash**:
      ```bash
      mkdir -p completions
@@ -194,103 +198,99 @@ Puedes habilitar autocompletado para tu CLI en tu shell favorito siguiendo estos
      poetry run vault completion fish > completions/vault.fish
      ```
 
-3. **Instalar el script** en tu configuración de shell:
+3. **Install the script** in your shell configuration:
 
-   - **Bash**:  
-     Añade en tu `~/.bashrc`:
+   - **Bash**:
+     Add this to `~/.bashrc`:
      ```bash
-     source /ruta/a/tu/proyecto/completions/vault.bash
+     source /path/to/your/project/completions/vault.bash
      ```
-     Luego recarga:
+     Then reload:
      ```bash
      source ~/.bashrc
      ```
 
-   - **Zsh**:  
-     Añade en tu `~/.zshrc`:
+   - **Zsh**:
+     Add this to `~/.zshrc`:
      ```zsh
-     fpath=(/ruta/a/tu/proyecto/completions $fpath)
+     fpath=(/path/to/your/project/completions $fpath)
      autoload -Uz compinit && compinit
      ```
-     Luego recarga:
+     Then reload:
      ```bash
      source ~/.zshrc
      ```
 
-   - **Fish**:  
-     Copia el script a tu carpeta de completions:
+   - **Fish**:
+     Copy the script to your completions folder:
      ```bash
      cp completions/vault.fish ~/.config/fish/completions/
      ```
-     Luego abre una nueva sesión de Fish.
+     Then open a new Fish session.
 
-4. **Probar el autocompletado**:
-   Abre una nueva terminal y escribe:
+4. **Test completion**:
+   Open a new terminal and type:
    ```bash
    vault <TAB><TAB>
    ```
-   Deberías ver sugerencias de todos los comandos y opciones disponibles.
+   You should see suggestions for all available commands and options.
 
-## ¿Qué es `vault.dat.checksum`?
+## What Is `vault.dat.checksum`?
 
-El archivo `vault.dat.checksum` almacena un hash SHA-256 del contenido cifrado de tu vault (`vault.dat`). Sirve para verificar la integridad del vault y detectar manipulaciones o corrupción antes de cada operación. Si el hash no coincide, el acceso se bloquea para proteger tus datos.
+The `vault.dat.checksum` file stores a SHA-256 hash of the encrypted vault content (`vault.dat`). It is used to verify vault integrity and detect tampering or corruption before every operation. If the hash does not match, access is blocked to protect your data.
 
-## Desarrollo
+## Development
 
-Activa el entorno virtual de Poetry y ejecuta tests:
+Activate the Poetry environment and run tests:
 
 ```bash
 poetry shell
 pytest --maxfail=1 --disable-warnings -q
 ```
 
-- Ver cobertura:
+- Check coverage:
   ```bash
   pytest --cov=src/vault --cov-report=term-missing
   ```
-- Comprueba el estilo de código:
+- Check code style:
   ```bash
   poetry run black --check .
   poetry run flake8 .
   ```
-- Escanea seguridad:
+- Run security scan:
   ```bash
   poetry run bandit -r src/vault
   ```
 
-## Contribuir
+## Contributing
 
-1. Haz fork del repositorio.  
-2. Crea una rama de feature: `git checkout -b feature/nueva-funcion`.  
-3. Asegura que pasen todos los tests y cumplen linters.  
-4. Abre un Pull Request.
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/new-feature`.
+3. Make sure all tests and linters pass.
+4. Open a Pull Request.
 
-## Licencia
+## License
 
-Este proyecto está bajo la licencia MIT.
+This project is licensed under the MIT License.
 
----
+## Publication and Community
 
-## Publicación y comunidad
+This repository is ready for public release on GitHub. You can contribute, report issues, or suggest improvements:
 
-Este repositorio está listo para publicación pública en GitHub. Puedes contribuir, reportar issues o sugerir mejoras:
+- Open an [Issue](https://github.com/i12gocaj/passwow/issues) to report bugs or request features.
+- Fork the project and submit a Pull Request to contribute code.
+- See this README for documentation and examples.
 
-- Abre un [Issue](https://github.com/i12gocaj/passwow/issues) para reportar bugs o solicitar nuevas funciones.
-- Haz un fork y envía un Pull Request para contribuir código.
-- Consulta la documentación y ejemplos en este README.
-
-### ¿Cómo usar la CLI y la app gráfica?
+### How to Use the CLI and GUI
 
 - **CLI:**
-  - Ejecuta comandos como `poetry run python -m vault.cli ...` o instala el paquete y usa `vault ...` directamente.
-  - Soporta autocompletado, backup, recuperación, exportación/importación, y protección avanzada.
-- **App gráfica (macOS):**
-  - Ejecuta `open dist/gui.app` o haz doble clic en el Finder.
-  - Permite gestionar el vault de forma visual, con las mismas garantías de seguridad.
+  - Run commands such as `poetry run python -m vault.cli ...`, or install the package and use `vault ...` directly.
+  - Supports autocomplete, backup, recovery, export/import, and advanced protection.
+- **macOS GUI:**
+  - Run `open dist/gui.app` or double-click it in Finder.
+  - Lets you manage the vault visually with the same security guarantees.
 
-### Soporte
+### Support
 
-- [Documentación actualizada en el README](https://github.com/i12gocaj/passwow#readme)
-- Contacto: i12gocaj@uco.es
-
----
+- [Updated documentation in the README](https://github.com/i12gocaj/passwow#readme)
+- Contact: i12gocaj@uco.es
